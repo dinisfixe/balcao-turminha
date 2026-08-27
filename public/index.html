@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Balcão Turminha - Nuvem Neon</title>
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --success: #16a34a;
+            --warning: #eab308;
+            --danger: #dc2626;
+            --background: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-light: #64748b;
+            --border: #cbd5e1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--background); color: var(--text); padding: 0.75rem; max-width: 900px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+        body::before { content: "JD"; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30vw; font-weight: 900; color: rgba(15, 23, 42, 0.03); z-index: -1; pointer-events: none; }
+        header { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.75rem; }
+        @media(min-width: 640px) { header { flex-direction: row; justify-content: space-between; align-items: center; } }
+        h1 { font-size: 1.35rem; color: var(--primary-dark); }
+        .nav-tabs { display: flex; gap: 0.35rem; width: 100%; overflow-x: auto; }
+        .tab-btn { flex: 1; padding: 0.6rem 0.75rem; border: 1px solid var(--border); background: var(--card-bg); cursor: pointer; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; white-space: nowrap; text-align: center; }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; }
+        select, input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 1rem; background: #fff; }
+        .display-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; text-align: center; margin-bottom: 1.25rem; }
+        @media (min-width: 640px) { .display-grid { grid-template-columns: 1fr 1fr; } }
+        .display-box { background: #f8fafc; border: 2px dashed var(--border); border-radius: 0.75rem; padding: 1rem; }
+        .display-label { font-size: 0.8rem; text-transform: uppercase; color: var(--text-light); margin-bottom: 0.35rem; font-weight: 700; }
+        .timer-value, .price-value { font-size: 2.25rem; font-weight: 800; font-family: monospace; }
+        .price-value { color: var(--success); }
+        .actions-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+        @media (min-width: 640px) { .actions-grid { grid-template-columns: repeat(2, 1fr); } }
+        .btn { padding: 1rem; font-size: 1.05rem; font-weight: 700; border: none; border-radius: 0.5rem; cursor: pointer; color: white; text-align: center; }
+        .btn-start { background-color: var(--success); }
+        .btn-pause { background-color: var(--warning); color: #713f12; }
+        .btn-resume { background-color: var(--primary); }
+        .btn-end { background-color: var(--danger); grid-column: 1 / -1; }
+        .btn-secondary { background-color: var(--text-light); }
+        #alert-box { display: none; background-color: #fef3c7; border-left: 6px solid var(--warning); padding: 0.85rem; margin-bottom: 1rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.9rem; color: #92400e; }
+        .stats-box { display: grid; grid-template-columns: 1fr 1fr; background: #e2e8f0; padding: 0.85rem; border-radius: 0.5rem; font-weight: bold; margin-bottom: 1rem; text-align: center; font-size: 0.95rem; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background-color: #f1f5f9; }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        footer.app-footer { margin-top: auto; text-align: center; padding: 1rem 0; font-size: 0.8rem; color: var(--text-light); border-top: 1px dashed var(--border); }
+        @media print { body * { visibility: hidden; } #active-summary-card, #active-summary-card * { visibility: visible; } #active-summary-card { position: absolute; left: 0; top: 0; width: 100%; border: none; } .btn { display: none; } .print-signature { display: block !important; margin-top: 2rem; text-align: center; font-size: 0.8rem; } }
+        .print-signature { display: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>⏱️ Balcão Turminha (Nuvem)</h1>
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchView('main')">Atendimento</button>
+            <button class="tab-btn" onclick="switchView('history')">Histórico Nuvem</button>
+        </div>
+    </header>
+
+    <div id="view-main" class="view-section active">
+        <div id="active-setup-card" class="card">
+            <h3 style="margin-bottom: 0.75rem; color: var(--primary-dark); font-size: 1.1rem;">Novo Atendimento</h3>
+            
+            <div class="form-group">
+                <label for="input-service-name">Nome do Serviço / Cliente</label>
+                <input type="text" id="input-service-name" placeholder="Ex: Formatar telemóvel">
+            </div>
+
+            <div class="form-group">
+                <label for="input-service-type">Tipo de Cobrança</label>
+                <select id="input-service-type" onchange="onMainTypeChange()">
+                    <option value="tempo">Por Tempo (Cronómetro + Regra 40 min)</option>
+                    <option value="fixo">Preço Fixo</option>
+                    <option value="custom">Preço Manual</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="group-rate-price">
+                <label id="label-rate-price" for="input-rate-price">Preço por Hora (€)</label>
+                <input type="number" id="input-rate-price" step="0.50" min="0" value="10.00">
+            </div>
+
+            <button class="btn btn-start" style="width: 100%;" onclick="startService()">INICIAR ATENDIMENTO</button>
+        </div>
+
+        <div id="active-running-card" class="card" style="display: none;">
+            <div id="running-service-title" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.75rem; color: var(--primary-dark); text-align: center;"></div>
+            <div id="alert-box"></div>
+            <div class="display-grid">
+                <div class="display-box">
+                    <div class="display-label">Tempo Decorrido</div>
+                    <div id="timer-display" class="timer-value">00:00:00</div>
+                </div>
+                <div class="display-box">
+                    <div class="display-label">Valor Atual</div>
+                    <div id="price-display" class="price-value">0,00 €</div>
+                </div>
+            </div>
+            <div class="actions-grid">
+                <button id="btn-pause-resume" class="btn btn-pause" onclick="pauseResumeService()">PAUSAR</button>
+                <button class="btn btn-end" onclick="endServicePrompt()">TERMINAR SERVIÇO</button>
+            </div>
+        </div>
+
+        <div id="active-summary-card" class="card" style="display: none;">
+            <h2 style="margin-bottom: 0.75rem; text-align: center; color: var(--success); font-size: 1.25rem;">RESUMO</h2>
+            <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; line-height: 1.6; border: 1px solid var(--border);">
+                <p><strong>Espaço:</strong> Balcão Turminha</p>
+                <p><strong>Serviço:</strong> <span id="sum-service"></span></p>
+                <p><strong>Tempo:</strong> <span id="sum-time"></span></p>
+                <p style="font-size: 1.2rem; color: var(--success); margin-top: 0.5rem;"><strong>TOTAL:</strong> <span id="sum-price"></span></p>
+            </div>
+            <div class="print-signature">
+                <p style="font-weight: bold; color: #b91c1c;">Não válido para fins fiscais - Apenas uso interno</p>
+                <p>Balcão Turminha &bull; João Dinis</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-start" style="flex: 2;" onclick="resetToNewService()">NOVO ATENDIMENTO</button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="window.print()">Imprimir</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-history" class="view-section">
+        <div class="card">
+            <h2 style="margin-bottom: 0.75rem; font-size: 1.2rem;">Histórico Sincronizado (Neon)</h2>
+            <div class="stats-box">
+                <div>Total Registos: <span id="stat-count">0</span></div>
+                <div>Faturado Total: <span id="stat-total">0,00 €</span></div>
+            </div>
+            <div style="overflow-x: auto; max-height: 400px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Serviço</th>
+                            <th>Tempo</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body"></tbody>
+                </table>
+            </div>
+            <button class="btn btn-secondary" style="margin-top: 1rem; width: 100%; background-color: var(--danger);" onclick="clearHistory()">LIMPAR HISTÓRICO NA NUVEM</button>
+        </div>
+    </div>
+
+    <footer class="app-footer">Balcão Turminha &bull; Produzido por João Dinis</footer>
+
+    <script>
+        let currentSession = { active: false, paused: false, serviceName: '', serviceType: '', hourlyRate: 0, fixedPrice: 0, customPrice: 0, startTime: null, elapsedSeconds: 0, timerInterval: null };
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            event.target.classList.add('active');
+            if (viewId === 'history') fetchHistory();
+        }
+
+        function onMainTypeChange() {
+            const type = document.getElementById('input-service-type').value;
+            const group = document.getElementById('group-rate-price');
+            group.style.display = type === 'custom' ? 'none' : 'block';
+        }
+
+        function calculateCurrentPrice(seconds, hourlyRate) {
+            if (seconds <= 0) return 0;
+            const hours = Math.floor(seconds / 3600);
+            const remainder = seconds % 3600;
+            const minutes = Math.floor(remainder / 60);
+            const extra = remainder % 60;
+            if (minutes === 0 && extra === 0) return hours * hourlyRate;
+            if (minutes > 40 || (minutes === 40 && extra > 0)) return (hours + 1) * hourlyRate;
+            return (hours * hourlyRate) + (((minutes + (extra / 60)) / 60) * hourlyRate);
+        }
+
+        function startService() {
+            const name = document.getElementById('input-service-name').value.trim();
+            const type = document.getElementById('input-service-type').value;
+            const priceVal = parseFloat(document.getElementById('input-rate-price').value) || 0;
+            if (!name) return alert('Indique o nome do serviço.');
+
+            currentSession = {
+                active: true, paused: false, serviceName: name, serviceType: type,
+                hourlyRate: type === 'tempo' ? priceVal : 0,
+                fixedPrice: type === 'fixo' ? priceVal : 0,
+                customPrice: type === 'custom' ? priceVal : 0,
+                startTime: new Date(), elapsedSeconds: 0, timerInterval: setInterval(tick, 1000)
+            };
+
+            document.getElementById('active-setup-card').style.display = 'none';
+            document.getElementById('active-running-card').style.display = 'block';
+            document.getElementById('running-service-title').textContent = `A decorrer: ${name}`;
+            tick();
+        }
+
+        function tick() {
+            if (currentSession.paused) return;
+            currentSession.elapsedSeconds++;
+            document.getElementById('timer-display').textContent = formatHMS(currentSession.elapsedSeconds);
+            let p = 0;
+            if (currentSession.serviceType === 'tempo') p = calculateCurrentPrice(currentSession.elapsedSeconds, currentSession.hourlyRate);
+            else if (currentSession.serviceType === 'fixo') p = currentSession.fixedPrice;
+            document.getElementById('price-display').textContent = formatEuro(p);
+        }
+
+        function pauseResumeService() {
+            currentSession.paused = !currentSession.paused;
+            document.getElementById('btn-pause-resume').textContent = currentSession.paused ? 'CONTINUAR' : 'PAUSAR';
+        }
+
+        async function endServicePrompt() {
+            if (!confirm('Terminar atendimento e gravar na nuvem?')) return;
+            clearInterval(currentSession.timerInterval);
+            const endTime = new Date();
+
+            let finalPrice = 0;
+            if (currentSession.serviceType === 'tempo') finalPrice = calculateCurrentPrice(currentSession.elapsedSeconds, currentSession.hourlyRate);
+            else if (currentSession.serviceType === 'fixo') finalPrice = currentSession.fixedPrice;
+            else finalPrice = parseFloat(prompt("Valor final (€):", "10.00")) || 10;
+
+            const payload = {
+                service_name: currentSession.serviceName,
+                service_type: currentSession.serviceType,
+                start_time: currentSession.startTime.toISOString(),
+                end_time: endTime.toISOString(),
+                time_formatted: formatHM(currentSession.elapsedSeconds),
+                price: finalPrice
+            };
+
+            try {
+                await fetch('/api/atendimentos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (e) {
+                alert('Erro ao guardar na nuvem!');
+            }
+
+            document.getElementById('active-running-card').style.display = 'none';
+            document.getElementById('active-summary-card').style.display = 'block';
+            document.getElementById('sum-service').textContent = currentSession.serviceName;
+            document.getElementById('sum-time').textContent = formatHM(currentSession.elapsedSeconds);
+            document.getElementById('sum-price').textContent = formatEuro(finalPrice);
+        }
+
+        async function fetchHistory() {
+            try {
+                const res = await fetch('/api/atendimentos');
+                const data = await res.json();
+                const tbody = document.getElementById('history-table-body');
+                tbody.innerHTML = '';
+                let total = 0;
+                data.forEach(item => {
+                    total += parseFloat(item.price);
+                    tbody.innerHTML += `<tr><td>${new Date(item.start_time).toLocaleDateString()}</td><td>${item.service_name}</td><td>${item.time_formatted}</td><td style="color:var(--success)"><strong>${formatEuro(item.price)}</strong></td></tr>`;
+                });
+                document.getElementById('stat-count').textContent = data.length;
+                document.getElementById('stat-total').textContent = formatEuro(total);
+            } catch (e) { console.error(e); }
+        }
+
+        async function clearHistory() {
+            if (confirm('Apagar todo o histórico na base de dados Neon?')) {
+                await fetch('/api/atendimentos', { method: 'DELETE' });
+                fetchHistory();
+            }
+        }
+
+        function resetToNewService() {
+            document.getElementById('active-summary-card').style.display = 'none';
+            document.getElementById('active-setup-card').style.display = 'block';
+            document.getElementById('input-service-name').value = '';
+        }
+
+        function formatEuro(v) { return Number(v).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' }); }
+        function formatHMS(s) { return `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+        function formatHM(s) { const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h > 0 ? `${h}h ${m}m` : `${m} minutos`; }
+    </script>
+</body>
+</html>
