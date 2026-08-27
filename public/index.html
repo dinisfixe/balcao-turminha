@@ -174,15 +174,30 @@
             group.style.display = type === 'custom' ? 'none' : 'block';
         }
 
+        // --- CORREÇÃO EXATA DA REGRA DE COBRANÇA ---
         function calculateCurrentPrice(seconds, hourlyRate) {
             if (seconds <= 0) return 0;
-            const hours = Math.floor(seconds / 3600);
-            const remainder = seconds % 3600;
-            const minutes = Math.floor(remainder / 60);
-            const extra = remainder % 60;
-            if (minutes === 0 && extra === 0) return hours * hourlyRate;
-            if (minutes > 40 || (minutes === 40 && extra > 0)) return (hours + 1) * hourlyRate;
-            return (hours * hourlyRate) + (((minutes + (extra / 60)) / 60) * hourlyRate);
+
+            const totalMins = Math.floor(seconds / 60);
+            const extraSecs = seconds % 60;
+
+            // Até 1 hora (60 minutos exatos), o preço é fixo à hora (ex: 10,00 €)
+            if (totalMins < 60 || (totalMins === 60 && extraSecs === 0)) {
+                return hourlyRate;
+            }
+
+            const hours = Math.floor(totalMins / 60);
+            const remainderMins = totalMins % 60;
+
+            // Regra dos 40 minutos para saltar para a hora seguinte
+            // Ex: Passou de 1h40 (ou seja, >= 41 min na hora corrente), salta para o valor de 2 horas.
+            if (remainderMins > 40 || (remainderMins === 40 && extraSecs > 0)) {
+                return (hours + 1) * hourlyRate;
+            } else {
+                // Cobrança proporcional sobre o preço base da hora anterior concluída + minutos da hora atual
+                const minuteFraction = (remainderMins + (extraSecs / 60)) / 60;
+                return (hours * hourlyRate) + (minuteFraction * hourlyRate);
+            }
         }
 
         function startService() {
