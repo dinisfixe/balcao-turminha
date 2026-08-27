@@ -3,64 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Balcão Turminha - Nuvem Neon</title>
+    <title>Balcão de Serviços Extra da Turminha</title>
     <style>
         :root {
-            --primary: #0284c7;
-            --primary-dark: #0369a1;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
             --success: #16a34a;
-            --warning: #eab308;
+            --warning: #ca8a04;
             --danger: #dc2626;
-            --background: #f1f5f9;
+            --bg: #f8fafc;
             --card-bg: #ffffff;
             --text: #0f172a;
             --text-light: #64748b;
-            --border: #cbd5e1;
+            --border: #e2e8f0;
+            --display-bg: #f1f5f9;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--background); color: var(--text); padding: 0.75rem; max-width: 900px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
-        body::before { content: "JD"; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30vw; font-weight: 900; color: rgba(15, 23, 42, 0.03); z-index: -1; pointer-events: none; }
-        header { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.75rem; }
-        @media(min-width: 640px) { header { flex-direction: row; justify-content: space-between; align-items: center; } }
-        h1 { font-size: 1.35rem; color: var(--primary-dark); }
-        .nav-tabs { display: flex; gap: 0.35rem; width: 100%; overflow-x: auto; }
-        .tab-btn { flex: 1; padding: 0.6rem 0.75rem; border: 1px solid var(--border); background: var(--card-bg); cursor: pointer; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; white-space: nowrap; text-align: center; }
-        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; }
-        select, input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 1rem; background: #fff; }
-        .display-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; text-align: center; margin-bottom: 1.25rem; }
-        @media (min-width: 640px) { .display-grid { grid-template-columns: 1fr 1fr; } }
-        .display-box { background: #f8fafc; border: 2px dashed var(--border); border-radius: 0.75rem; padding: 1rem; }
-        .display-label { font-size: 0.8rem; text-transform: uppercase; color: var(--text-light); margin-bottom: 0.35rem; font-weight: 700; }
-        .timer-value, .price-value { font-size: 2.25rem; font-weight: 800; font-family: monospace; }
-        .price-value { color: var(--success); }
-        .actions-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
-        @media (min-width: 640px) { .actions-grid { grid-template-columns: repeat(2, 1fr); } }
-        .btn { padding: 1rem; font-size: 1.05rem; font-weight: 700; border: none; border-radius: 0.5rem; cursor: pointer; color: white; text-align: center; }
+        [data-theme="dark"] {
+            --primary: #38bdf8;
+            --primary-dark: #0ea5e9;
+            --success: #22c55e;
+            --warning: #eab308;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-light: #94a3b8;
+            --border: #334155;
+            --display-bg: #090d16;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; transition: background-color 0.2s, color 0.2s; }
+        
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Marca d'água no fundo */
+        body::before {
+            content: "JD";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 35vw;
+            font-weight: 900;
+            color: var(--text);
+            opacity: 0.02;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .title-container h1 {
+            font-size: 1.35rem;
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        @media(min-width: 640px) { .title-container h1 { font-size: 1.6rem; } }
+
+        .subtitle-author {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-weight: 600;
+            margin-top: 0.2rem;
+        }
+
+        .theme-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.5rem 0.75rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 0.6rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 0.85rem;
+            border: 2px solid var(--border);
+            border-radius: 0.6rem;
+            font-size: 1.05rem;
+            background: var(--card-bg);
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .display-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .display-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .display-box {
+            background: var(--display-bg);
+            border: 2px solid var(--border);
+            border-radius: 0.8rem;
+            padding: 1.25rem;
+        }
+
+        .display-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+        }
+
+        .timer-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            font-family: monospace;
+            color: var(--text);
+        }
+
+        .price-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--success);
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        @media (min-width: 640px) {
+            .actions-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .btn {
+            padding: 1.1rem;
+            font-size: 1.15rem;
+            font-weight: 800;
+            border: none;
+            border-radius: 0.7rem;
+            cursor: pointer;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .btn:active { transform: scale(0.98); }
+
         .btn-start { background-color: var(--success); }
-        .btn-pause { background-color: var(--warning); color: #713f12; }
+        .btn-pause { background-color: var(--warning); color: #000; }
         .btn-resume { background-color: var(--primary); }
         .btn-end { background-color: var(--danger); grid-column: 1 / -1; }
         .btn-secondary { background-color: var(--text-light); }
-        #alert-box { display: none; background-color: #fef3c7; border-left: 6px solid var(--warning); padding: 0.85rem; margin-bottom: 1rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.9rem; color: #92400e; }
-        .stats-box { display: grid; grid-template-columns: 1fr 1fr; background: #e2e8f0; padding: 0.85rem; border-radius: 0.5rem; font-weight: bold; margin-bottom: 1rem; text-align: center; font-size: 0.95rem; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background-color: #f1f5f9; }
+
+        #alert-box {
+            display: none;
+            background-color: rgba(234, 179, 8, 0.15);
+            border-left: 6px solid var(--warning);
+            padding: 1rem;
+            margin-bottom: 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--warning);
+        }
+
+        .stats-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: var(--display-bg);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 0.6rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th { background-color: var(--display-bg); color: var(--text-light); font-weight: 800; }
+
         .view-section { display: none; }
         .view-section.active { display: block; }
-        footer.app-footer { margin-top: auto; text-align: center; padding: 1rem 0; font-size: 0.8rem; color: var(--text-light); border-top: 1px dashed var(--border); }
-        @media print { body * { visibility: hidden; } #active-summary-card, #active-summary-card * { visibility: visible; } #active-summary-card { position: absolute; left: 0; top: 0; width: 100%; border: none; } .btn { display: none; } .print-signature { display: block !important; margin-top: 2rem; text-align: center; font-size: 0.8rem; } }
+
+        footer.app-footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 1.5rem 0;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            border-top: 1px dashed var(--border);
+            font-weight: 600;
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #active-summary-card, #active-summary-card * { visibility: visible; }
+            #active-summary-card { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
+            .btn { display: none; }
+            .print-signature { display: block !important; margin-top: 2rem; text-align: center; font-size: 0.85rem; color: #000; }
+        }
         .print-signature { display: none; }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
     <header>
-        <h1>⏱️ Balcão Turminha (Nuvem)</h1>
+        <div class="header-top">
+            <div class="title-container">
+                <h1>⚡ Balcão de Serviços Extra da Turminha</h1>
+                <div class="subtitle-author">Produzido pelo João Dinis</div>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span id="theme-icon">🌙</span> <span id="theme-text">Noite</span>
+            </button>
+        </div>
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="switchView('main')">Atendimento</button>
             <button class="tab-btn" onclick="switchView('history')">Histórico Nuvem</button>
@@ -69,11 +325,11 @@
 
     <div id="view-main" class="view-section active">
         <div id="active-setup-card" class="card">
-            <h3 style="margin-bottom: 0.75rem; color: var(--primary-dark); font-size: 1.1rem;">Novo Atendimento</h3>
+            <h3 style="margin-bottom: 1.25rem; color: var(--primary); font-size: 1.2rem;">Novo Atendimento</h3>
             
             <div class="form-group">
                 <label for="input-service-name">Nome do Serviço / Cliente</label>
-                <input type="text" id="input-service-name" placeholder="Ex: Formatar telemóvel">
+                <input type="text" id="input-service-name" placeholder="Ex: Formatar telemóvel do João">
             </div>
 
             <div class="form-group">
@@ -94,7 +350,7 @@
         </div>
 
         <div id="active-running-card" class="card" style="display: none;">
-            <div id="running-service-title" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.75rem; color: var(--primary-dark); text-align: center;"></div>
+            <div id="running-service-title" style="font-size: 1.2rem; font-weight: 800; margin-bottom: 1.25rem; color: var(--primary); text-align: center;"></div>
             <div id="alert-box"></div>
             <div class="display-grid">
                 <div class="display-box">
@@ -113,18 +369,19 @@
         </div>
 
         <div id="active-summary-card" class="card" style="display: none;">
-            <h2 style="margin-bottom: 0.75rem; text-align: center; color: var(--success); font-size: 1.25rem;">RESUMO</h2>
-            <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; line-height: 1.6; border: 1px solid var(--border);">
-                <p><strong>Espaço:</strong> Balcão Turminha</p>
+            <h2 style="margin-bottom: 1rem; text-align: center; color: var(--success); font-size: 1.3rem;">RESUMO DO ATENDIMENTO</h2>
+            <div style="background: var(--display-bg); padding: 1.25rem; border-radius: 0.8rem; margin-bottom: 1.25rem; line-height: 1.8; border: 1px solid var(--border);">
+                <p><strong>Espaço:</strong> Balcão de Serviços Extra da Turminha</p>
                 <p><strong>Serviço:</strong> <span id="sum-service"></span></p>
-                <p><strong>Tempo:</strong> <span id="sum-time"></span></p>
-                <p style="font-size: 1.2rem; color: var(--success); margin-top: 0.5rem;"><strong>TOTAL:</strong> <span id="sum-price"></span></p>
+                <p><strong>Tempo total:</strong> <span id="sum-time"></span></p>
+                <p style="font-size: 1.3rem; color: var(--success); margin-top: 0.75rem;"><strong>TOTAL A PAGAR:</strong> <span id="sum-price"></span></p>
             </div>
             <div class="print-signature">
-                <p style="font-weight: bold; color: #b91c1c;">Não válido para fins fiscais - Apenas uso interno</p>
-                <p>Balcão Turminha &bull; João Dinis</p>
+                <p style="font-weight: bold; color: #b91c1c; margin-bottom: 0.5rem;">Não válido para fins fiscais - Apenas para uso interno</p>
+                <p>Balcão de Serviços Extra da Turminha</p>
+                <p>Produzido pelo João Dinis</p>
             </div>
-            <div style="display: flex; gap: 0.5rem;">
+            <div style="display: flex; gap: 0.75rem;">
                 <button class="btn btn-start" style="flex: 2;" onclick="resetToNewService()">NOVO ATENDIMENTO</button>
                 <button class="btn btn-secondary" style="flex: 1;" onclick="window.print()">Imprimir</button>
             </div>
@@ -133,12 +390,12 @@
 
     <div id="view-history" class="view-section">
         <div class="card">
-            <h2 style="margin-bottom: 0.75rem; font-size: 1.2rem;">Histórico Sincronizado (Neon)</h2>
+            <h2 style="margin-bottom: 1rem; font-size: 1.3rem;">Histórico Sincronizado (Neon)</h2>
             <div class="stats-box">
-                <div>Total Registos: <span id="stat-count">0</span></div>
+                <div>Total Atendimentos: <span id="stat-count">0</span></div>
                 <div>Faturado Total: <span id="stat-total">0,00 €</span></div>
             </div>
-            <div style="overflow-x: auto; max-height: 400px;">
+            <div style="overflow-x: auto; max-height: 450px;">
                 <table>
                     <thead>
                         <tr>
@@ -151,13 +408,33 @@
                     <tbody id="history-table-body"></tbody>
                 </table>
             </div>
-            <button class="btn btn-secondary" style="margin-top: 1rem; width: 100%; background-color: var(--danger);" onclick="clearHistory()">LIMPAR HISTÓRICO NA NUVEM</button>
+            <button class="btn btn-secondary" style="margin-top: 1.25rem; width: 100%; background-color: var(--danger);" onclick="clearHistory()">LIMPAR HISTÓRICO NA NUVEM</button>
         </div>
     </div>
 
-    <footer class="app-footer">Balcão Turminha &bull; Produzido por João Dinis</footer>
+    <footer class="app-footer">
+        Balcão de Serviços Extra da Turminha &bull; Produzido pelo João Dinis
+    </footer>
 
     <script>
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('app_theme', newTheme);
+            
+            document.getElementById('theme-icon').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            document.getElementById('theme-text').textContent = newTheme === 'dark' ? 'Dia' : 'Noite';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('app_theme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('theme-icon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            document.getElementById('theme-text').textContent = savedTheme === 'dark' ? 'Dia' : 'Noite';
+        });
+
         let currentSession = { active: false, paused: false, serviceName: '', serviceType: '', hourlyRate: 0, fixedPrice: 0, customPrice: 0, startTime: null, elapsedSeconds: 0, timerInterval: null };
 
         function switchView(viewId) {
@@ -174,14 +451,12 @@
             group.style.display = type === 'custom' ? 'none' : 'block';
         }
 
-        // --- CORREÇÃO EXATA DA REGRA DE COBRANÇA ---
         function calculateCurrentPrice(seconds, hourlyRate) {
             if (seconds <= 0) return 0;
 
             const totalMins = Math.floor(seconds / 60);
             const extraSecs = seconds % 60;
 
-            // Até 1 hora (60 minutos exatos), o preço é fixo à hora (ex: 10,00 €)
             if (totalMins < 60 || (totalMins === 60 && extraSecs === 0)) {
                 return hourlyRate;
             }
@@ -189,12 +464,9 @@
             const hours = Math.floor(totalMins / 60);
             const remainderMins = totalMins % 60;
 
-            // Regra dos 40 minutos para saltar para a hora seguinte
-            // Ex: Passou de 1h40 (ou seja, >= 41 min na hora corrente), salta para o valor de 2 horas.
             if (remainderMins > 40 || (remainderMins === 40 && extraSecs > 0)) {
                 return (hours + 1) * hourlyRate;
             } else {
-                // Cobrança proporcional sobre o preço base da hora anterior concluída + minutos da hora atual
                 const minuteFraction = (remainderMins + (extraSecs / 60)) / 60;
                 return (hours * hourlyRate) + (minuteFraction * hourlyRate);
             }
@@ -203,106 +475,3 @@
         function startService() {
             const name = document.getElementById('input-service-name').value.trim();
             const type = document.getElementById('input-service-type').value;
-            const priceVal = parseFloat(document.getElementById('input-rate-price').value) || 0;
-            if (!name) return alert('Indique o nome do serviço.');
-
-            currentSession = {
-                active: true, paused: false, serviceName: name, serviceType: type,
-                hourlyRate: type === 'tempo' ? priceVal : 0,
-                fixedPrice: type === 'fixo' ? priceVal : 0,
-                customPrice: type === 'custom' ? priceVal : 0,
-                startTime: new Date(), elapsedSeconds: 0, timerInterval: setInterval(tick, 1000)
-            };
-
-            document.getElementById('active-setup-card').style.display = 'none';
-            document.getElementById('active-running-card').style.display = 'block';
-            document.getElementById('running-service-title').textContent = `A decorrer: ${name}`;
-            tick();
-        }
-
-        function tick() {
-            if (currentSession.paused) return;
-            currentSession.elapsedSeconds++;
-            document.getElementById('timer-display').textContent = formatHMS(currentSession.elapsedSeconds);
-            let p = 0;
-            if (currentSession.serviceType === 'tempo') p = calculateCurrentPrice(currentSession.elapsedSeconds, currentSession.hourlyRate);
-            else if (currentSession.serviceType === 'fixo') p = currentSession.fixedPrice;
-            document.getElementById('price-display').textContent = formatEuro(p);
-        }
-
-        function pauseResumeService() {
-            currentSession.paused = !currentSession.paused;
-            document.getElementById('btn-pause-resume').textContent = currentSession.paused ? 'CONTINUAR' : 'PAUSAR';
-        }
-
-        async function endServicePrompt() {
-            if (!confirm('Terminar atendimento e gravar na nuvem?')) return;
-            clearInterval(currentSession.timerInterval);
-            const endTime = new Date();
-
-            let finalPrice = 0;
-            if (currentSession.serviceType === 'tempo') finalPrice = calculateCurrentPrice(currentSession.elapsedSeconds, currentSession.hourlyRate);
-            else if (currentSession.serviceType === 'fixo') finalPrice = currentSession.fixedPrice;
-            else finalPrice = parseFloat(prompt("Valor final (€):", "10.00")) || 10;
-
-            const payload = {
-                service_name: currentSession.serviceName,
-                service_type: currentSession.serviceType,
-                start_time: currentSession.startTime.toISOString(),
-                end_time: endTime.toISOString(),
-                time_formatted: formatHM(currentSession.elapsedSeconds),
-                price: finalPrice
-            };
-
-            try {
-                await fetch('/api/atendimentos', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-            } catch (e) {
-                alert('Erro ao guardar na nuvem!');
-            }
-
-            document.getElementById('active-running-card').style.display = 'none';
-            document.getElementById('active-summary-card').style.display = 'block';
-            document.getElementById('sum-service').textContent = currentSession.serviceName;
-            document.getElementById('sum-time').textContent = formatHM(currentSession.elapsedSeconds);
-            document.getElementById('sum-price').textContent = formatEuro(finalPrice);
-        }
-
-        async function fetchHistory() {
-            try {
-                const res = await fetch('/api/atendimentos');
-                const data = await res.json();
-                const tbody = document.getElementById('history-table-body');
-                tbody.innerHTML = '';
-                let total = 0;
-                data.forEach(item => {
-                    total += parseFloat(item.price);
-                    tbody.innerHTML += `<tr><td>${new Date(item.start_time).toLocaleDateString()}</td><td>${item.service_name}</td><td>${item.time_formatted}</td><td style="color:var(--success)"><strong>${formatEuro(item.price)}</strong></td></tr>`;
-                });
-                document.getElementById('stat-count').textContent = data.length;
-                document.getElementById('stat-total').textContent = formatEuro(total);
-            } catch (e) { console.error(e); }
-        }
-
-        async function clearHistory() {
-            if (confirm('Apagar todo o histórico na base de dados Neon?')) {
-                await fetch('/api/atendimentos', { method: 'DELETE' });
-                fetchHistory();
-            }
-        }
-
-        function resetToNewService() {
-            document.getElementById('active-summary-card').style.display = 'none';
-            document.getElementById('active-setup-card').style.display = 'block';
-            document.getElementById('input-service-name').value = '';
-        }
-
-        function formatEuro(v) { return Number(v).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' }); }
-        function formatHMS(s) { return `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
-        function formatHM(s) { const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h > 0 ? `${h}h ${m}m` : `${m} minutos`; }
-    </script>
-</body>
-</html>
