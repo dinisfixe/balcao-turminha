@@ -422,17 +422,21 @@
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             body.setAttribute('data-theme', newTheme);
             localStorage.setItem('app_theme', newTheme);
-            
             document.getElementById('theme-icon').textContent = newTheme === 'dark' ? '☀️' : '🌙';
             document.getElementById('theme-text').textContent = newTheme === 'dark' ? 'Dia' : 'Noite';
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('app_theme') || 'light';
-            document.body.setAttribute('data-theme', savedTheme);
-            document.getElementById('theme-icon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
-            document.getElementById('theme-text').textContent = savedTheme === 'dark' ? 'Dia' : 'Noite';
+            bodyTheme(savedTheme);
+            checkActiveSession();
         });
+
+        function bodyTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            document.getElementById('theme-icon').textContent = theme === 'dark' ? '☀️' : '🌙';
+            document.getElementById('theme-text').textContent = theme === 'dark' ? 'Dia' : 'Noite';
+        }
 
         let currentSession = { active: false, paused: false, serviceName: '', serviceType: '', hourlyRate: 0, fixedPrice: 0, customPrice: 0, startTime: null, elapsedSeconds: 0, timerInterval: null };
 
@@ -452,23 +456,13 @@
 
         function calculateCurrentPrice(seconds, hourlyRate) {
             if (seconds <= 0) return 0;
-
             const totalMins = Math.floor(seconds / 60);
             const extraSecs = seconds % 60;
-
-            if (totalMins < 60 || (totalMins === 60 && extraSecs === 0)) {
-                return hourlyRate;
-            }
-
+            if (totalMins < 60 || (totalMins === 60 && extraSecs === 0)) return hourlyRate;
             const hours = Math.floor(totalMins / 60);
             const remainderMins = totalMins % 60;
-
-            if (remainderMins > 40 || (remainderMins === 40 && extraSecs > 0)) {
-                return (hours + 1) * hourlyRate;
-            } else {
-                const minuteFraction = (remainderMins + (extraSecs / 60)) / 60;
-                return (hours * hourlyRate) + (minuteFraction * hourlyRate);
-            }
+            if (remainderMins > 40 || (remainderMins === 40 && extraSecs > 0)) return (hours + 1) * hourlyRate;
+            return (hours * hourlyRate) + (((remainderMins + (extraSecs / 60)) / 60) * hourlyRate);
         }
 
         function startService() {
@@ -479,15 +473,37 @@
 
             currentSession = {
                 active: true, paused: false, serviceName: name, serviceType: type,
-                hourlyRate: type === 'tempo' ? priceVal : 0,
-                fixedPrice: type === 'fixo' ? priceVal : 0,
-                customPrice: type === 'custom' ? priceVal : 0,
-                startTime: new Date(), elapsedSeconds: 0, timerInterval: setInterval(tick, 1000)
+                hourlyRate: type === 'tempo' ? priceVal : 0, fixedPrice: type === 'fixo' ? priceVal : 0, customPrice: type === 'custom' ? priceVal : 0,
+                startTime: new Date().toISOString(), elapsedSeconds: 0, timerInterval: null
             };
 
+            localStorage.setItem('turminha_session', JSON.stringify(currentSession));
+            activateRunningUI();
+        }
+
+        function checkActiveSession() {
+            const saved = localStorage.getItem('turminha_session');
+            if (!saved) return;
+            const session = JSON.parse(saved);
+            if (!session.active) return;
+
+            const now = new Date();
+            const start = new Date(session.startTime);
+            const diffSecs = Math.floor((now - start) / 1000);
+
+            currentSession = session;
+            currentSession.elapsedSeconds = diffSecs > 0 ? diffSecs : 0;
+
+            activateRunningUI();
+        }
+
+        function activateRunningUI() {
             document.getElementById('active-setup-card').style.display = 'none';
             document.getElementById('active-running-card').style.display = 'block';
-            document.getElementById('running-service-title').textContent = `A decorrer: ${name}`;
+            document.getElementById('running-service-title').textContent = `A decorrer: ${currentSession.serviceName}`;
+
+            if (currentSession.timerInterval) clearInterval(currentSession.timerInterval);
+            currentSession.timerInterval = setInterval(tick, 1000);
             tick();
         }
 
@@ -503,8 +519,9 @@
 
         function pauseResumeService() {
             currentSession.paused = !currentSession.paused;
-            document.getElementById('btn-pause-resume').textContent = currentSession.paused ? 'CONTINUAR' : 'PAUSAR';
-            document.getElementById('btn-pause-resume').className = currentSession.paused ? 'btn btn-resume' : 'btn btn-pause';
+            const btn = document.getElementById('btn-pause-resume');
+            btn.textContent = currentSession.paused ? 'CONTINUAR' : 'PAUSAR';
+            btn.className = currentSession.paused ? 'btn btn-resume' : 'btn btn-pause';
         }
 
         async function endServicePrompt() {
@@ -520,22 +537,23 @@
             const payload = {
                 service_name: currentSession.serviceName,
                 service_type: currentSession.serviceType,
-                start_time: currentSession.startTime.toISOString(),
+                start_time: currentSession.startTime,
                 end_time: endTime.toISOString(),
                 time_formatted: formatHM(currentSession.elapsedSeconds),
                 price: finalPrice
             };
 
             try {
-                const response = await fetch('/api/atendimentos', {
+                await fetch('/api/atendimentos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) throw new Error('Falha ao gravar');
             } catch (e) {
                 alert('Erro ao guardar na nuvem!');
             }
+
+            localStorage.removeItem('turminha_session');
 
             document.getElementById('active-running-card').style.display = 'none';
             document.getElementById('active-summary-card').style.display = 'block';
@@ -568,6 +586,7 @@
         }
 
         function resetToNewService() {
+            localStorage.removeItem('turminha_session');
             document.getElementById('active-summary-card').style.display = 'none';
             document.getElementById('active-setup-card').style.display = 'block';
             document.getElementById('input-service-name').value = '';
