@@ -171,7 +171,6 @@
             border-color: var(--primary);
         }
 
-        /* Grelha de Atendimentos Ativos Múltiplos */
         .active-services-container {
             display: grid;
             grid-template-columns: 1fr;
@@ -216,14 +215,14 @@
         }
 
         .timer-value {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: 900;
             font-family: monospace;
             color: var(--text);
         }
 
         .price-value {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: 900;
             color: var(--success);
         }
@@ -297,7 +296,7 @@
     <header>
         <div class="header-top">
             <div class="title-container">
-                <h1>⚡ Balcão de Serviços Extra da Turminha</h1>
+                <h1>⚡ Balcão de Serviços Extra</h1>
                 <div class="subtitle-author">Produzido pelo João Dinis</div>
             </div>
             <button class="theme-toggle" onclick="toggleTheme()">
@@ -409,11 +408,22 @@
             document.body.setAttribute('data-theme', savedTheme);
             document.getElementById('theme-icon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
             document.getElementById('theme-text').textContent = savedTheme === 'dark' ? 'Dia' : 'Noite';
+            
             loadActiveServices();
             setInterval(tickAllServices, 1000);
         });
 
-        let activeServices = JSON.parse(localStorage.getItem('turminha_active_services')) || [];
+        let activeServices = [];
+
+        function loadActiveServices() {
+            const saved = localStorage.getItem('turminha_active_services');
+            if (saved) {
+                try {
+                    activeServices = JSON.parse(saved);
+                } catch(e) { activeServices = []; }
+            }
+            renderActiveServices();
+        }
 
         function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -451,11 +461,9 @@
             if (seconds <= 0) return 0;
             if (service.type === 'fixo' || service.type === 'manual_total') return service.rate;
             if (service.type === 'manual_minuto') {
-                const mins = seconds / 60;
-                return mins * service.rate;
+                return (seconds / 60) * service.rate;
             }
             
-            // Regra por tempo (com saltos aos 40 min)
             const hourlyRate = service.rate;
             const totalMins = Math.floor(seconds / 60);
             const extraSecs = seconds % 60;
@@ -615,11 +623,9 @@
                 alert('Erro ao guardar na nuvem!');
             }
 
-            // Remover dos ativos
             activeServices = activeServices.filter(item => item.id !== id);
             saveAndRenderActive();
 
-            // Mostrar Resumo
             document.getElementById('active-summary-card').style.display = 'block';
             document.getElementById('sum-service').textContent = s.name;
             document.getElementById('sum-time').textContent = formatHM(secs);
