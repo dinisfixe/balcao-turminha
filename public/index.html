@@ -187,7 +187,6 @@
             border-radius: 1rem;
             padding: 1.25rem;
             box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-            position: relative;
         }
 
         .display-grid {
@@ -206,7 +205,7 @@
         }
 
         .display-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-light);
@@ -215,14 +214,14 @@
         }
 
         .timer-value {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             font-weight: 900;
             font-family: monospace;
             color: var(--text);
         }
 
         .price-value {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             font-weight: 900;
             color: var(--success);
         }
@@ -379,12 +378,13 @@
                             <th>Serviço</th>
                             <th>Tempo</th>
                             <th>Valor</th>
+                            <th style="text-align: center;">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="history-table-body"></tbody>
                 </table>
             </div>
-            <button class="btn btn-secondary" style="margin-top: 1.25rem; width: 100%; background-color: var(--danger);" onclick="clearHistory()">LIMPAR HISTÓRICO NA NUVEM</button>
+            <button class="btn btn-secondary" style="margin-top: 1.25rem; width: 100%; background-color: var(--danger);" onclick="clearHistory()">LIMPAR TODO O HISTÓRICO</button>
         </div>
     </div>
 
@@ -418,9 +418,7 @@
         function loadActiveServices() {
             const saved = localStorage.getItem('turminha_active_services');
             if (saved) {
-                try {
-                    activeServices = JSON.parse(saved);
-                } catch(e) { activeServices = []; }
+                try { activeServices = JSON.parse(saved); } catch(e) { activeServices = []; }
             }
             renderActiveServices();
         }
@@ -460,10 +458,14 @@
         function calculatePrice(service, seconds) {
             if (seconds <= 0) return 0;
             if (service.type === 'fixo' || service.type === 'manual_total') return service.rate;
+            
             if (service.type === 'manual_minuto') {
-                return (seconds / 60) * service.rate;
+                // Arredonda aos minutos completos para atualizar o preço de minuto a minuto exatamente
+                const totalMins = Math.floor(seconds / 60);
+                return totalMins * service.rate;
             }
             
+            // Regra por tempo (com saltos aos 40 min)
             const hourlyRate = service.rate;
             const totalMins = Math.floor(seconds / 60);
             const extraSecs = seconds % 60;
@@ -598,11 +600,6 @@
             const secs = getElapsedSeconds(s);
             let finalPrice = calculatePrice(s, secs);
 
-            if (s.type === 'custom') {
-                let inputFinal = prompt("Introduza o valor final a cobrar (€):", finalPrice.toFixed(2));
-                finalPrice = inputFinal !== null ? parseFloat(inputFinal) || finalPrice : finalPrice;
-            }
-
             const endTime = new Date();
             const payload = {
                 service_name: s.name,
@@ -642,11 +639,29 @@
                 let total = 0;
                 data.forEach(item => {
                     total += parseFloat(item.price);
-                    tbody.innerHTML += `<tr><td>${new Date(item.start_time).toLocaleDateString()}</td><td>${item.service_name}</td><td>${item.time_formatted}</td><td style="color:var(--success)"><strong>${formatEuro(item.price)}</strong></td></tr>`;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${new Date(item.start_time).toLocaleDateString()}</td>
+                            <td>${item.service_name}</td>
+                            <td>${item.time_formatted}</td>
+                            <td style="color:var(--success)"><strong>${formatEuro(item.price)}</strong></td>
+                            <td style="text-align: center;">
+                                <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background-color: var(--danger);" onclick="deleteHistoryItem('${item.id}')">🗑️</button>
+                            </td>
+                        </tr>`;
                 });
                 document.getElementById('stat-count').textContent = data.length;
                 document.getElementById('stat-total').textContent = formatEuro(total);
             } catch (e) { console.error(e); }
+        }
+
+        async function deleteHistoryItem(id) {
+            if (confirm('Pretende apagar este registo do histórico?')) {
+                try {
+                    await fetch(`/api/atendimentos?id=${id}`, { method: 'DELETE' });
+                    fetchHistory();
+                } catch(e) { alert('Erro ao apagar registo'); }
+            }
         }
 
         async function clearHistory() {
