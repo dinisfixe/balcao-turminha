@@ -39,7 +39,7 @@
             background-color: var(--bg);
             color: var(--text);
             padding: 1rem;
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
             min-height: 100vh;
             display: flex;
@@ -171,88 +171,86 @@
             border-color: var(--primary);
         }
 
-        .display-grid {
+        /* Grelha de Atendimentos Ativos Múltiplos */
+        .active-services-container {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 1rem;
-            text-align: center;
-            margin-bottom: 1.5rem;
+            gap: 1.5rem;
         }
 
-        @media (min-width: 640px) {
-            .display-grid { grid-template-columns: 1fr 1fr; }
+        @media(min-width: 768px) {
+            .active-services-container { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .running-card {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        .display-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            text-align: center;
+            margin: 1rem 0;
         }
 
         .display-box {
             background: var(--display-bg);
-            border: 2px solid var(--border);
-            border-radius: 0.8rem;
-            padding: 1.25rem;
+            border: 1px solid var(--border);
+            border-radius: 0.6rem;
+            padding: 0.85rem;
         }
 
         .display-label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-light);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
             font-weight: 800;
         }
 
         .timer-value {
-            font-size: 2.5rem;
+            font-size: 1.6rem;
             font-weight: 900;
             font-family: monospace;
             color: var(--text);
         }
 
         .price-value {
-            font-size: 2.5rem;
+            font-size: 1.6rem;
             font-weight: 900;
             color: var(--success);
         }
 
         .actions-grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-        }
-
-        @media (min-width: 640px) {
-            .actions-grid { grid-template-columns: repeat(2, 1fr); }
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
         }
 
         .btn {
-            padding: 1.1rem;
-            font-size: 1.15rem;
+            padding: 0.85rem;
+            font-size: 1rem;
             font-weight: 800;
             border: none;
-            border-radius: 0.7rem;
+            border-radius: 0.6rem;
             cursor: pointer;
             color: white;
             text-align: center;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
         .btn:active { transform: scale(0.98); }
-
         .btn-start { background-color: var(--success); }
         .btn-pause { background-color: var(--warning); color: #000; }
         .btn-resume { background-color: var(--primary); }
         .btn-end { background-color: var(--danger); grid-column: 1 / -1; }
         .btn-secondary { background-color: var(--text-light); }
-
-        #alert-box {
-            display: none;
-            background-color: rgba(234, 179, 8, 0.15);
-            border-left: 6px solid var(--warning);
-            padding: 1rem;
-            margin-bottom: 1.25rem;
-            border-radius: 0.5rem;
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--warning);
-        }
 
         .stats-box {
             display: grid;
@@ -267,18 +265,8 @@
             font-size: 1rem;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-
-        th, td {
-            padding: 0.8rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 0.8rem; text-align: left; border-bottom: 1px solid var(--border); }
         th { background-color: var(--display-bg); color: var(--text-light); font-weight: 800; }
 
         .view-section { display: none; }
@@ -323,7 +311,8 @@
     </header>
 
     <div id="view-main" class="view-section active">
-        <div id="active-setup-card" class="card">
+        <!-- Formulário para Iniciar Novo Serviço -->
+        <div class="card">
             <h3 style="margin-bottom: 1.25rem; color: var(--primary); font-size: 1.2rem;">Novo Atendimento</h3>
             
             <div class="form-group">
@@ -336,37 +325,26 @@
                 <select id="input-service-type" onchange="onMainTypeChange()">
                     <option value="tempo">Por Tempo (Cronómetro + Regra 40 min)</option>
                     <option value="fixo">Preço Fixo</option>
-                    <option value="custom">Preço Manual</option>
+                    <option value="manual_minuto">Preço Manual ao Minuto (Ex: 0,25€/min)</option>
+                    <option value="manual_total">Preço Manual Total Fixo</option>
                 </select>
             </div>
 
             <div class="form-group" id="group-rate-price">
                 <label id="label-rate-price" for="input-rate-price">Preço por Hora (€)</label>
-                <input type="number" id="input-rate-price" step="0.50" min="0" value="10.00">
+                <input type="number" id="input-rate-price" step="0.25" min="0" value="10.00">
             </div>
 
-            <button class="btn btn-start" style="width: 100%;" onclick="startService()">INICIAR ATENDIMENTO</button>
+            <button class="btn btn-start" style="width: 100%;" onclick="startNewService()">+ INICIAR ESTE SERVIÇO</button>
         </div>
 
-        <div id="active-running-card" class="card" style="display: none;">
-            <div id="running-service-title" style="font-size: 1.2rem; font-weight: 800; margin-bottom: 1.25rem; color: var(--primary); text-align: center;"></div>
-            <div id="alert-box"></div>
-            <div class="display-grid">
-                <div class="display-box">
-                    <div class="display-label">Tempo Decorrido</div>
-                    <div id="timer-display" class="timer-value">00:00:00</div>
-                </div>
-                <div class="display-box">
-                    <div class="display-label">Valor Atual</div>
-                    <div id="price-display" class="price-value">0,00 €</div>
-                </div>
-            </div>
-            <div class="actions-grid">
-                <button id="btn-pause-resume" class="btn btn-pause" onclick="pauseResumeService()">PAUSAR</button>
-                <button class="btn btn-end" onclick="endServicePrompt()">TERMINAR SERVIÇO</button>
-            </div>
+        <!-- Lista de Serviços Ativos em Simultâneo -->
+        <div id="active-services-section" style="display: none;" class="card">
+            <h3 style="margin-bottom: 1rem; color: var(--success); font-size: 1.1rem;">Serviços Ativos em Simultâneo (<span id="active-count">0</span>)</h3>
+            <div id="active-services-container" class="active-services-container"></div>
         </div>
 
+        <!-- Resumo do Último Atendimento Terminado -->
         <div id="active-summary-card" class="card" style="display: none;">
             <h2 style="margin-bottom: 1rem; text-align: center; color: var(--success); font-size: 1.3rem;">RESUMO DO ATENDIMENTO</h2>
             <div style="background: var(--display-bg); padding: 1.25rem; border-radius: 0.8rem; margin-bottom: 1.25rem; line-height: 1.8; border: 1px solid var(--border);">
@@ -381,7 +359,7 @@
                 <p>Produzido pelo João Dinis</p>
             </div>
             <div style="display: flex; gap: 0.75rem;">
-                <button class="btn btn-start" style="flex: 2;" onclick="resetToNewService()">NOVO ATENDIMENTO</button>
+                <button class="btn btn-start" style="flex: 2;" onclick="document.getElementById('active-summary-card').style.display='none';">NOVO ATENDIMENTO</button>
                 <button class="btn btn-secondary" style="flex: 1;" onclick="window.print()">Imprimir</button>
             </div>
         </div>
@@ -428,17 +406,14 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('app_theme') || 'light';
-            bodyTheme(savedTheme);
-            checkActiveSession();
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('theme-icon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            document.getElementById('theme-text').textContent = savedTheme === 'dark' ? 'Dia' : 'Noite';
+            loadActiveServices();
+            setInterval(tickAllServices, 1000);
         });
 
-        function bodyTheme(theme) {
-            document.body.setAttribute('data-theme', theme);
-            document.getElementById('theme-icon').textContent = theme === 'dark' ? '☀️' : '🌙';
-            document.getElementById('theme-text').textContent = theme === 'dark' ? 'Dia' : 'Noite';
-        }
-
-        let currentSession = { active: false, paused: false, serviceName: '', serviceType: '', hourlyRate: 0, fixedPrice: 0, customPrice: 0, startTime: null, elapsedSeconds: 0, timerInterval: null };
+        let activeServices = JSON.parse(localStorage.getItem('turminha_active_services')) || [];
 
         function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -451,95 +426,182 @@
         function onMainTypeChange() {
             const type = document.getElementById('input-service-type').value;
             const group = document.getElementById('group-rate-price');
-            group.style.display = type === 'custom' ? 'none' : 'block';
+            const label = document.getElementById('label-rate-price');
+
+            if (type === 'tempo') {
+                group.style.display = 'block';
+                label.textContent = 'Preço por Hora (€)';
+                document.getElementById('input-rate-price').value = '10.00';
+            } else if (type === 'fixo') {
+                group.style.display = 'block';
+                label.textContent = 'Preço Fixo (€)';
+                document.getElementById('input-rate-price').value = '5.00';
+            } else if (type === 'manual_minuto') {
+                group.style.display = 'block';
+                label.textContent = 'Preço por Minuto (€) [Ex: 0.25]';
+                document.getElementById('input-rate-price').value = '0.25';
+            } else if (type === 'manual_total') {
+                group.style.display = 'block';
+                label.textContent = 'Preço Total Fixo (€)';
+                document.getElementById('input-rate-price').value = '10.00';
+            }
         }
 
-        function calculateCurrentPrice(seconds, hourlyRate) {
+        function calculatePrice(service, seconds) {
             if (seconds <= 0) return 0;
+            if (service.type === 'fixo' || service.type === 'manual_total') return service.rate;
+            if (service.type === 'manual_minuto') {
+                const mins = seconds / 60;
+                return mins * service.rate;
+            }
+            
+            // Regra por tempo (com saltos aos 40 min)
+            const hourlyRate = service.rate;
             const totalMins = Math.floor(seconds / 60);
             const extraSecs = seconds % 60;
+
             if (totalMins < 60 || (totalMins === 60 && extraSecs === 0)) return hourlyRate;
+
             const hours = Math.floor(totalMins / 60);
             const remainderMins = totalMins % 60;
-            if (remainderMins > 40 || (remainderMins === 40 && extraSecs > 0)) return (hours + 1) * hourlyRate;
-            return (hours * hourlyRate) + (((remainderMins + (extraSecs / 60)) / 60) * hourlyRate);
+
+            if (remainderMins > 40 || (remainderMins === 40 && extraSecs > 0)) {
+                return (hours + 1) * hourlyRate;
+            } else {
+                const minuteFraction = (remainderMins + (extraSecs / 60)) / 60;
+                return (hours * hourlyRate) + (minuteFraction * hourlyRate);
+            }
         }
 
-        function startService() {
+        function startNewService() {
             const name = document.getElementById('input-service-name').value.trim();
             const type = document.getElementById('input-service-type').value;
-            const priceVal = parseFloat(document.getElementById('input-rate-price').value) || 0;
+            const rate = parseFloat(document.getElementById('input-rate-price').value) || 0;
             if (!name) return alert('Por favor, indique o nome do serviço ou cliente.');
 
-            currentSession = {
-                active: true, paused: false, serviceName: name, serviceType: type,
-                hourlyRate: type === 'tempo' ? priceVal : 0, fixedPrice: type === 'fixo' ? priceVal : 0, customPrice: type === 'custom' ? priceVal : 0,
-                startTime: new Date().toISOString(), elapsedSeconds: 0, timerInterval: null
+            const newService = {
+                id: Date.now().toString(),
+                name: name,
+                type: type,
+                rate: rate,
+                startTime: new Date().toISOString(),
+                paused: false,
+                pausedSeconds: 0,
+                lastPauseTime: null
             };
 
-            localStorage.setItem('turminha_session', JSON.stringify(currentSession));
-            activateRunningUI();
+            activeServices.push(newService);
+            saveAndRenderActive();
+            document.getElementById('input-service-name').value = '';
         }
 
-        function checkActiveSession() {
-            const saved = localStorage.getItem('turminha_session');
-            if (!saved) return;
-            const session = JSON.parse(saved);
-            if (!session.active) return;
+        function saveAndRenderActive() {
+            localStorage.setItem('turminha_active_services', JSON.stringify(activeServices));
+            renderActiveServices();
+        }
 
+        function renderActiveServices() {
+            const container = document.getElementById('active-services-container');
+            const section = document.getElementById('active-services-section');
+            document.getElementById('active-count').textContent = activeServices.length;
+
+            if (activeServices.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            container.innerHTML = '';
+
+            activeServices.forEach(s => {
+                const secs = getElapsedSeconds(s);
+                const price = calculatePrice(s, secs);
+
+                const div = document.createElement('div');
+                div.className = 'running-card';
+                div.innerHTML = `
+                    <div style="font-size: 1.05rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${s.name}</div>
+                    <div class="display-grid">
+                        <div class="display-box">
+                            <div class="display-label">Tempo</div>
+                            <div class="timer-value" id="timer-${s.id}">${formatHMS(secs)}</div>
+                        </div>
+                        <div class="display-box">
+                            <div class="display-label">Valor Atual</div>
+                            <div class="price-value" id="price-${s.id}">${formatEuro(price)}</div>
+                        </div>
+                    </div>
+                    <div class="actions-grid">
+                        <button class="btn ${s.paused ? 'btn-resume' : 'btn-pause'}" onclick="togglePause('${s.id}')">${s.paused ? 'CONTINUAR' : 'PAUSAR'}</button>
+                        <button class="btn btn-end" onclick="endService('${s.id}')">TERMINAR</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function getElapsedSeconds(s) {
             const now = new Date();
-            const start = new Date(session.startTime);
-            const diffSecs = Math.floor((now - start) / 1000);
-
-            currentSession = session;
-            currentSession.elapsedSeconds = diffSecs > 0 ? diffSecs : 0;
-
-            activateRunningUI();
+            const start = new Date(s.startTime);
+            let diff = Math.floor((now - start) / 1000) - s.pausedSeconds;
+            if (s.paused && s.lastPauseTime) {
+                const pauseDuration = Math.floor((now - new Date(s.lastPauseTime)) / 1000);
+                diff -= pauseDuration;
+            }
+            return diff > 0 ? diff : 0;
         }
 
-        function activateRunningUI() {
-            document.getElementById('active-setup-card').style.display = 'none';
-            document.getElementById('active-running-card').style.display = 'block';
-            document.getElementById('running-service-title').textContent = `A decorrer: ${currentSession.serviceName}`;
-
-            if (currentSession.timerInterval) clearInterval(currentSession.timerInterval);
-            currentSession.timerInterval = setInterval(tick, 1000);
-            tick();
+        function tickAllServices() {
+            if (activeServices.length === 0) return;
+            activeServices.forEach(s => {
+                if (s.paused) return;
+                const secs = getElapsedSeconds(s);
+                const price = calculatePrice(s, secs);
+                
+                const timerEl = document.getElementById(`timer-${s.id}`);
+                const priceEl = document.getElementById(`price-${s.id}`);
+                if (timerEl) timerEl.textContent = formatHMS(secs);
+                if (priceEl) priceEl.textContent = formatEuro(price);
+            });
         }
 
-        function tick() {
-            if (currentSession.paused) return;
-            currentSession.elapsedSeconds++;
-            document.getElementById('timer-display').textContent = formatHMS(currentSession.elapsedSeconds);
-            let p = 0;
-            if (currentSession.serviceType === 'tempo') p = calculateCurrentPrice(currentSession.elapsedSeconds, currentSession.hourlyRate);
-            else if (currentSession.serviceType === 'fixo') p = currentSession.fixedPrice;
-            document.getElementById('price-display').textContent = formatEuro(p);
+        function togglePause(id) {
+            const s = activeServices.find(item => item.id === id);
+            if (!s) return;
+            const now = new Date();
+
+            if (!s.paused) {
+                s.paused = true;
+                s.lastPauseTime = now.toISOString();
+            } else {
+                s.paused = false;
+                if (s.lastPauseTime) {
+                    s.pausedSeconds += Math.floor((now - new Date(s.lastPauseTime)) / 1000);
+                    s.lastPauseTime = null;
+                }
+            }
+            saveAndRenderActive();
         }
 
-        function pauseResumeService() {
-            currentSession.paused = !currentSession.paused;
-            const btn = document.getElementById('btn-pause-resume');
-            btn.textContent = currentSession.paused ? 'CONTINUAR' : 'PAUSAR';
-            btn.className = currentSession.paused ? 'btn btn-resume' : 'btn btn-pause';
-        }
+        async function endService(id) {
+            const s = activeServices.find(item => item.id === id);
+            if (!s || !confirm(`Terminar e guardar o atendimento de "${s.name}"?`)) return;
 
-        async function endServicePrompt() {
-            if (!confirm('Tem a certeza de que deseja terminar este atendimento e guardá-lo?')) return;
-            clearInterval(currentSession.timerInterval);
+            const secs = getElapsedSeconds(s);
+            let finalPrice = calculatePrice(s, secs);
+
+            if (s.type === 'custom') {
+                let inputFinal = prompt("Introduza o valor final a cobrar (€):", finalPrice.toFixed(2));
+                finalPrice = inputFinal !== null ? parseFloat(inputFinal) || finalPrice : finalPrice;
+            }
+
             const endTime = new Date();
-
-            let finalPrice = 0;
-            if (currentSession.serviceType === 'tempo') finalPrice = calculateCurrentPrice(currentSession.elapsedSeconds, currentSession.hourlyRate);
-            else if (currentSession.serviceType === 'fixo') finalPrice = currentSession.fixedPrice;
-            else finalPrice = parseFloat(prompt("Introduza o valor final a cobrar (€):", "10.00")) || 10;
-
             const payload = {
-                service_name: currentSession.serviceName,
-                service_type: currentSession.serviceType,
-                start_time: currentSession.startTime,
+                service_name: s.name,
+                service_type: s.type,
+                start_time: s.startTime,
                 end_time: endTime.toISOString(),
-                time_formatted: formatHM(currentSession.elapsedSeconds),
+                time_formatted: formatHM(secs),
                 price: finalPrice
             };
 
@@ -553,13 +615,16 @@
                 alert('Erro ao guardar na nuvem!');
             }
 
-            localStorage.removeItem('turminha_session');
+            // Remover dos ativos
+            activeServices = activeServices.filter(item => item.id !== id);
+            saveAndRenderActive();
 
-            document.getElementById('active-running-card').style.display = 'none';
+            // Mostrar Resumo
             document.getElementById('active-summary-card').style.display = 'block';
-            document.getElementById('sum-service').textContent = currentSession.serviceName;
-            document.getElementById('sum-time').textContent = formatHM(currentSession.elapsedSeconds);
+            document.getElementById('sum-service').textContent = s.name;
+            document.getElementById('sum-time').textContent = formatHM(secs);
             document.getElementById('sum-price').textContent = formatEuro(finalPrice);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         async function fetchHistory() {
@@ -583,13 +648,6 @@
                 await fetch('/api/atendimentos', { method: 'DELETE' });
                 fetchHistory();
             }
-        }
-
-        function resetToNewService() {
-            localStorage.removeItem('turminha_session');
-            document.getElementById('active-summary-card').style.display = 'none';
-            document.getElementById('active-setup-card').style.display = 'block';
-            document.getElementById('input-service-name').value = '';
         }
 
         function formatEuro(v) { return Number(v).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' }); }
